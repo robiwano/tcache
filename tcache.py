@@ -1,11 +1,24 @@
 #!/usr/bin/env python
-"""A simple python script template.
+"""
+tcache :
+
+A simple caching script that uses the arguments passed, or
+the hash of them, as a name to a folder where the total hash of
+files passed to tcache will be used as a filename. 
+
+If a file <exe hash>.retval is found, the contents of <exe hash>.output
+will be sent to STDOUT, and value of <exe hash>.retval will be returned
+as process return code.
+
+Paths to passed files will be modified relative to TCACHE_BASEDIR if defined.
+CCACHE_BASEDIR will also be used if defined.
 """
 
-from __future__ import print_function
-import os, shutil, subprocess, platform
+import os
+import shutil
+import subprocess
+import platform
 import sys
-import argparse
 import hashlib
 import time
 
@@ -114,16 +127,16 @@ def main(arguments):
     key_arg = arg_hash.hexdigest()
     key_exe = exe_hash.hexdigest()
     path = os.path.join(TCACHE_DIRECTORY, key_arg)
-    do_execute = True
-    if os.path.isdir(path):
+    cache_valid = False
+    if os.path.isdir(path) and os.path.exists(path):
         if cache_folder_has_key(path, key_exe):
-            do_execute = False
+            cache_valid = True
         else:
             clear_folder(path)
-    if do_execute:
-        return run_process(arguments, path, key_exe)
-    else:
+    if cache_valid:
         return output_cache(path, key_exe)
+    else:
+        return run_process(arguments, path, key_exe)
 
 
 if __name__ == '__main__':
